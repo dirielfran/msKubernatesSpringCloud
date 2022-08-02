@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,5 +17,6 @@ public class Curso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     private String nombre;
 }

@@ -5,13 +5,18 @@ import com.eareiza.mscursos.interfaces.CursoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 public class CursoController {
+
     @Autowired
     private CursoService cursoService;
 
@@ -29,12 +34,16 @@ public class CursoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Curso crear(@RequestBody Curso Curso){
-        return cursoService.guardar(Curso);
+    public ResponseEntity<?> crear(@Valid @RequestBody Curso curso, BindingResult result){
+        if(result.hasErrors()) return validaCampos(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cursoService.guardar(curso));
     }
 
+
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@RequestBody Curso Curso, @PathVariable Long id){
+    public ResponseEntity<?> editar(@Valid @RequestBody Curso Curso, BindingResult result, @PathVariable Long id){
+        if(result.hasErrors()) return validaCampos(result);
         Optional<Curso> opt = cursoService.porId(id);
         if(opt.isPresent()){
             Curso cursoDB = opt.get();
@@ -52,5 +61,13 @@ public class CursoController {
             return  ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    private ResponseEntity<Map<String, String>> validaCampos(BindingResult result) {
+        Map<String, String> errores = new HashMap<>();
+        result.getFieldErrors().forEach(err -> {
+            errores.put(err.getField(), "El campo " + err.getField() +": "+err.getDefaultMessage());
+        });
+        return ResponseEntity.badRequest().body(errores);
     }
 }
